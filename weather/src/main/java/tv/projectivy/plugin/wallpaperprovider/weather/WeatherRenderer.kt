@@ -446,54 +446,55 @@ object WeatherRenderer {
 
 
     /**
-     * Compact market card in the unused right-hand area of the launcher
-     * wallpaper. Values are indicative spot benchmarks, not jeweller quotes.
+     * Light glass-style market card. Text and prices remain legible without
+     * a solid black panel over the wallpaper.
      */
     private fun drawMarketPanel(canvas: Canvas, rates: MarketRates) {
-        val left = 1110f
-        val top = 430f
+        val left = 1120f
+        val top = 455f
         val right = 1810f
-        val bottom = 820f
+        val bottom = 790f
         val card = RectF(left, top, right, bottom)
-        val background = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(188, 7, 13, 27)
-            setShadowLayer(18f, 0f, 5f, Color.argb(110, 0, 0, 0))
-        }
-        canvas.drawRoundRect(card, 28f, 28f, background)
-        canvas.drawRoundRect(card, 28f, 28f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        canvas.drawRoundRect(card, 26f, 26f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(218, 250, 250, 246)
+            setShadowLayer(12f, 0f, 4f, Color.argb(55, 0, 0, 0))
+        })
+        canvas.drawRoundRect(card, 26f, 26f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = 2f
-            color = Color.argb(95, 255, 255, 255)
+            color = Color.argb(185, 255, 255, 255)
         })
 
-        val gold = Color.rgb(244, 195, 72)
-        val white = Color.WHITE
-        val muted = Color.argb(180, 220, 228, 240)
+        val accent = Color.rgb(151, 105, 35)
+        val ink = Color.rgb(34, 42, 52)
+        val muted = Color.rgb(91, 101, 111)
         fun text(value: String, x: Float, y: Float, size: Float, color: Int, face: Typeface = medium) {
-            canvas.drawText(value, x, y, paint(size, face, 245).apply { this.color = color })
+            canvas.drawText(value, x, y, paint(size, face, 255).apply {
+                this.color = color
+                clearShadowLayer()
+            })
         }
 
-        text("UAE GOLD RATE", left + 38f, top + 55f, 31f, gold)
-        text("AED / GRAM", right - 205f, top + 55f, 22f, muted, light)
+        text("UAE GOLD", left + 34f, top + 46f, 27f, accent)
+        text("AED / g", right - 150f, top + 46f, 21f, muted, light)
+        text("24K", left + 38f, top + 112f, 29f, muted)
+        text(String.format(Locale.US, "%.2f", rates.gold24k), left + 160f, top + 116f, 45f, ink, light)
+        text("22K", left + 38f, top + 174f, 29f, muted)
+        text(String.format(Locale.US, "%.2f", rates.gold22k), left + 160f, top + 178f, 45f, ink, light)
 
-        text("24K", left + 40f, top + 126f, 34f, muted)
-        text(String.format(Locale.US, "%.2f", rates.gold24k), left + 180f, top + 130f, 58f, white, light)
-        text("22K", left + 40f, top + 198f, 34f, muted)
-        text(String.format(Locale.US, "%.2f", rates.gold22k), left + 180f, top + 202f, 58f, white, light)
+        canvas.drawLine(left + 34f, top + 198f, right - 34f, top + 198f,
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(90, 80, 90, 100)
+                strokeWidth = 1.5f
+            })
 
-        val divider = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(65, 255, 255, 255)
-            strokeWidth = 2f
-        }
-        canvas.drawLine(left + 38f, top + 225f, right - 38f, top + 225f, divider)
+        text("AED → INR", left + 38f, top + 245f, 23f, accent)
+        text("1 AED", left + 38f, top + 292f, 25f, muted, light)
+        text(String.format(Locale.US, "₹ %.2f", rates.aedToInr), left + 160f, top + 294f, 35f, ink)
 
-        text("CURRENCY", left + 40f, top + 255f, 25f, gold)
-        text("1 AED", left + 40f, top + 310f, 30f, muted, light)
-        text(String.format(Locale.US, "INR %.3f", rates.aedToInr), left + 180f, top + 312f, 43f, white)
-
-        text("Spot benchmark · excludes VAT and making charges", left + 40f, bottom - 45f, 17f, muted, light)
-        val updated = "Gold " + MarketRatesClient.timeLabel(rates.goldUpdatedAt) + "  ·  FX " + MarketRatesClient.timeLabel(rates.fxUpdatedAt)
-        text(updated, left + 40f, bottom - 18f, 19f, muted, light)
+        val updated = "Gold " + MarketRatesClient.timeLabel(rates.goldUpdatedAt) +
+            "  ·  FX " + MarketRatesClient.timeLabel(rates.fxUpdatedAt)
+        text(updated, left + 38f, bottom - 18f, 17f, muted, light)
     }
 
     /** Everything above the background: readings, icon, optional panels. */
@@ -553,7 +554,7 @@ object WeatherRenderer {
             canvas, c.weatherCode, phaseIsDay,
             cx = MARGIN + tempPaint.measureText(temp) + dy(130f),
             cy = y - dy(70f),
-            size = sz(175f)
+            size = sz(112f)
         )
 
         y += dy(90f)
@@ -1059,10 +1060,10 @@ object WeatherRenderer {
         entries.forEachIndexed { i, hour ->
             val cx = startX + colWidth * i + colWidth / 2f - dy(12f)
             val hourText = TextFormats.hourLabel(hour.hour, is24)
-            canvas.drawText(hourText, cx - labelHalf(hourText, sz(28f)), top + dy(22f), paint(sz(28f), light, 175))
-            WeatherIcons.draw(canvas, hour.weatherCode, hour.isDay, cx, top + dy(60f), sz(46f))
+            canvas.drawText(hourText, cx - labelHalf(hourText, sz(28f)), top + dy(22f), paint(sz(23f), light, 190).apply { color = Color.rgb(43, 52, 62); clearShadowLayer() })
+            WeatherIcons.draw(canvas, hour.weatherCode, hour.isDay, cx, top + dy(60f), sz(32f))
             val t = "${hour.temperature.roundToInt()}\u00B0"
-            canvas.drawText(t, cx - labelHalf(t, sz(36f)), top + dy(108f), paint(sz(36f), light, 235))
+            canvas.drawText(t, cx - labelHalf(t, sz(36f)), top + dy(108f), paint(sz(25f), light, 235).apply { color = Color.rgb(35, 45, 55); clearShadowLayer() })
 
             // Only show precipitation chance when it's worth knowing.
             if (hour.precipChance >= 20) {
@@ -1096,16 +1097,16 @@ object WeatherRenderer {
             val cx = startX + colWidth * i + colWidth / 2f - dy(12f)
             val dayText = TextFormats.weekday(day.isoDate).ifEmpty { day.label }
             canvas.drawText(dayText, cx - labelHalf(dayText, sz(28f)), top + dy(22f), paint(sz(28f), light, 175))
-            WeatherIcons.draw(canvas, day.weatherCode, true, cx, top + dy(60f), sz(46f))
+            WeatherIcons.draw(canvas, day.weatherCode, true, cx, top + dy(60f), sz(32f))
             val hi = "${day.high.roundToInt()}\u00B0"
             val lo = "${day.low.roundToInt()}\u00B0"
-            canvas.drawText(hi, cx - labelHalf(hi, sz(34f)) - dy(22f), top + dy(108f), paint(sz(34f), light, 235))
-            canvas.drawText(lo, cx - labelHalf(lo, sz(30f)) + dy(24f), top + dy(108f), paint(sz(30f), light, 150))
+            canvas.drawText(hi, cx - labelHalf(hi, sz(34f)) - dy(22f), top + dy(108f), paint(sz(25f), light, 235).apply { color = Color.rgb(35, 45, 55); clearShadowLayer() })
+            canvas.drawText(lo, cx - labelHalf(lo, sz(30f)) + dy(24f), top + dy(108f), paint(sz(22f), light, 170).apply { color = Color.rgb(91, 101, 111); clearShadowLayer() })
         }
     }
 
     private fun panelPaint() = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(52, 0, 0, 0)
+        color = Color.argb(112, 255, 255, 255)
     }
 
     /** Half the rendered width of a label, for centring without a layout pass. */
