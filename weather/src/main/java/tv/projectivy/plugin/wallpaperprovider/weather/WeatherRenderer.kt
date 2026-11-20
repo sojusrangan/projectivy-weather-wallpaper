@@ -446,55 +446,43 @@ object WeatherRenderer {
 
 
     /**
-     * Light glass-style market card. Text and prices remain legible without
-     * a solid black panel over the wallpaper.
+     * Small transparent market status module. Kept in the upper-right area,
+     * clear of Projectivy's lower app rows and without a card background.
      */
     private fun drawMarketPanel(canvas: Canvas, rates: MarketRates) {
-        val left = 1120f
-        val top = 455f
-        val right = 1810f
-        val bottom = 790f
-        val card = RectF(left, top, right, bottom)
-        canvas.drawRoundRect(card, 26f, 26f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(218, 250, 250, 246)
-            setShadowLayer(12f, 0f, 4f, Color.argb(55, 0, 0, 0))
+        val x = 1110f
+        val y = 300f
+        val ink = Color.rgb(34, 48, 62)
+        val muted = Color.rgb(67, 82, 96)
+        val gold = Color.rgb(151, 105, 35)
+
+        // Small gold coin glyph.
+        canvas.drawCircle(x + 12f, y - 8f, 13f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = gold
         })
-        canvas.drawRoundRect(card, 26f, 26f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = 2f
-            color = Color.argb(185, 255, 255, 255)
+        canvas.drawText("Au", x + 2f, y - 1f, paint(13f, medium, 255).apply {
+            color = Color.WHITE
+            clearShadowLayer()
         })
 
-        val accent = Color.rgb(151, 105, 35)
-        val ink = Color.rgb(34, 42, 52)
-        val muted = Color.rgb(91, 101, 111)
-        fun text(value: String, x: Float, y: Float, size: Float, color: Int, face: Typeface = medium) {
-            canvas.drawText(value, x, y, paint(size, face, 255).apply {
-                this.color = color
-                clearShadowLayer()
-            })
-        }
+        val p = paint(25f, medium, 235).apply { color = ink; clearShadowLayer() }
+        val small = paint(23f, light, 220).apply { color = muted; clearShadowLayer() }
+        canvas.drawText("24K  " + String.format(Locale.US, "%.2f", rates.gold24k), x + 38f, y, p)
+        canvas.drawText("22K  " + String.format(Locale.US, "%.2f", rates.gold22k), x + 285f, y, p)
+        canvas.drawText("AED/g", x + 545f, y, small)
 
-        text("UAE GOLD", left + 34f, top + 46f, 27f, accent)
-        text("AED / g", right - 150f, top + 46f, 21f, muted, light)
-        text("24K", left + 38f, top + 112f, 29f, muted)
-        text(String.format(Locale.US, "%.2f", rates.gold24k), left + 160f, top + 116f, 45f, ink, light)
-        text("22K", left + 38f, top + 174f, 29f, muted)
-        text(String.format(Locale.US, "%.2f", rates.gold22k), left + 160f, top + 178f, 45f, ink, light)
-
-        canvas.drawLine(left + 34f, top + 198f, right - 34f, top + 198f,
-            Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.argb(90, 80, 90, 100)
-                strokeWidth = 1.5f
-            })
-
-        text("AED → INR", left + 38f, top + 245f, 23f, accent)
-        text("1 AED", left + 38f, top + 292f, 25f, muted, light)
-        text(String.format(Locale.US, "₹ %.2f", rates.aedToInr), left + 160f, top + 294f, 35f, ink)
-
-        val updated = "Gold " + MarketRatesClient.timeLabel(rates.goldUpdatedAt) +
-            "  ·  FX " + MarketRatesClient.timeLabel(rates.fxUpdatedAt)
-        text(updated, left + 38f, bottom - 18f, 17f, muted, light)
+        // Currency as a compact second line, no filled panel.
+        canvas.drawCircle(x + 12f, y + 42f, 12f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(55, 126, 105)
+        })
+        canvas.drawText("₹", x + 5f, y + 50f, paint(18f, medium, 255).apply {
+            color = Color.WHITE
+            clearShadowLayer()
+        })
+        canvas.drawText(
+            "1 AED = " + String.format(Locale.US, "₹ %.2f", rates.aedToInr),
+            x + 38f, y + 50f, small
+        )
     }
 
     /** Everything above the background: readings, icon, optional panels. */
@@ -541,25 +529,25 @@ object WeatherRenderer {
         // it stays white: tinting the temperature would hurt legibility for
         // decoration, which is the wrong trade on a screen people glance at.
         val seasonal = HolidayThemes.current()
-        val labelPaint = paint(sz(38f), medium, 205)
+        val labelPaint = paint(sz(25f), medium, 220)
         seasonal?.let { labelPaint.color = it.accent }
         canvas.drawText(placeLabel.uppercase(), MARGIN, y, labelPaint)
-        y += dy(190f)
+        y += dy(82f)
 
         val temp = "${c.temperature.roundToInt()}${c.unitSuffix}"
-        val tempPaint = paint(sz(220f), light)
+        val tempPaint = paint(sz(88f), light)
         canvas.drawText(temp, MARGIN, y, tempPaint)
 
         WeatherIcons.draw(
             canvas, c.weatherCode, phaseIsDay,
-            cx = MARGIN + tempPaint.measureText(temp) + dy(130f),
-            cy = y - dy(70f),
-            size = sz(112f)
+            cx = MARGIN + tempPaint.measureText(temp) + dy(42f),
+            cy = y - dy(28f),
+            size = sz(48f)
         )
 
-        y += dy(90f)
+        y += dy(38f)
         canvas.drawText(
-            OpenMeteoClient.describe(context, c.weatherCode), MARGIN, y, paint(sz(64f), light, 238)
+            OpenMeteoClient.describe(context, c.weatherCode), MARGIN, y, paint(sz(29f), light, 238)
         )
 
         // Whether it is about to rain matters more than anything else here, so
@@ -568,8 +556,8 @@ object WeatherRenderer {
         if (PreferencesManager.showNowcast) {
             c.nowcast?.let { n ->
                 OpenMeteoClient.nowcastLabel(context, n, c.weatherCode)?.let { text ->
-                    y += dy(52f)
-                    canvas.drawText(text, MARGIN, y, paint(sz(40f), medium).apply {
+                    y += dy(32f)
+                    canvas.drawText(text, MARGIN, y, paint(sz(23f), medium).apply {
                         color = Color.parseColor("#8FD3F4")
                     })
                 }
@@ -637,7 +625,7 @@ object WeatherRenderer {
             // panel has limited vertical room.
             yesterday?.let { append("   \u00B7   $it") }
         }
-        canvas.drawText(detail, MARGIN, y, paint(sz(40f), light, 195))
+        canvas.drawText(detail, MARGIN, y, paint(sz(24f), light, 220))
         y += dy(52f)
 
         // Aurora, when the K-index makes it plausible here. Conditional, so it
@@ -645,8 +633,8 @@ object WeatherRenderer {
         if (PreferencesManager.showAurora) {
             currentAurora?.let { a ->
                 AuroraClient.label(context, a)?.let { text ->
-                    y += dy(46f)
-                    canvas.drawText(text, MARGIN, y, paint(sz(34f), medium, 220).apply {
+                    y += dy(28f)
+                    canvas.drawText(text, MARGIN, y, paint(sz(22f), medium, 220).apply {
                         color = Color.parseColor("#A8E6A0")
                     })
                 }
@@ -669,7 +657,7 @@ object WeatherRenderer {
 
         if (PreferencesManager.showStats) {
             statsLine(context, c)?.let {
-                canvas.drawText(it, MARGIN, y, paint(sz(34f), light, 165))
+                canvas.drawText(it, MARGIN, y, paint(sz(21f), light, 200))
                 y += dy(46f)
             }
         }
@@ -681,30 +669,19 @@ object WeatherRenderer {
             }
         }
 
-        // Hourly and daily sit side by side on one row so both can be enabled
-        // without running into the app row.
-        val showHourly = PreferencesManager.showHourly && c.hourly.isNotEmpty()
-        val showDaily = PreferencesManager.showDaily && c.daily.isNotEmpty()
-
-        if (showHourly || showDaily) {
-            // Clamp upward to stay clear of the app row rather than dropping the
-            // strips entirely. The earlier version discarded them silently once
-            // the stats and sun lines had pushed y far enough down, which looked
-            // exactly like the toggles not working.
-            val desired = y + dy(22f)
-            val highest = safeBottom() - stripHeight()
-            val stripTop = minOf(desired, highest)
-
-            // Only bail if there is genuinely no room left below the text.
-            if (stripTop >= y - 6f) {
-                var x = MARGIN
-                if (showHourly) {
-                    x = hourlyStrip(canvas, c, x, stripTop, TextFormats.use24Hour(context))
-                    x += dy(70f)
-                }
-                if (showDaily) {
-                    dailyStrip(canvas, c, x, stripTop)
-                }
+        // A single small forecast row stays above the launcher app carousel.
+        val forecastItems = c.hourly.take(5)
+        if (forecastItems.isNotEmpty()) {
+            val rowY = minOf(y + dy(34f), safeBottom() - dy(42f))
+            var fx = MARGIN
+            forecastItems.forEach { hour ->
+                WeatherIcons.draw(canvas, hour.weatherCode, hour.isDay, fx + dy(10f), rowY - dy(7f), sz(23f))
+                val t = "${hour.temperature.roundToInt()}°"
+                canvas.drawText(t, fx + dy(30f), rowY, paint(sz(19f), light, 220).apply {
+                    color = Color.rgb(43, 52, 62)
+                    clearShadowLayer()
+                })
+                fx += dy(112f)
             }
         }
 
