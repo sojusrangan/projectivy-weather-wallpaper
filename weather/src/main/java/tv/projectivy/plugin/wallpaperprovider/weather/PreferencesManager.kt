@@ -223,6 +223,78 @@ object PreferencesManager {
         get() = prefs.getBoolean(KEY_SHOW_FORECAST, true)
         set(v) = prefs.edit().putBoolean(KEY_SHOW_FORECAST, v).apply()
 
+    /**
+     * Per-element presentation settings used by the remote-friendly layout editor.
+     * Coordinates are offsets from the element's existing anchor, preserving the
+     * default composition while allowing each item to be tuned independently.
+     */
+    data class ElementStyle(
+        val offsetX: Int = 0,
+        val offsetY: Int = 0,
+        val sizePercent: Int = 100,
+        val color: String = "#FFFFFF",
+        val opacity: Int = 100,
+        val visible: Boolean = true,
+        val rotation: Int = 0
+    )
+
+    private const val KEY_ELEMENT_STYLES = "elementStyles"
+
+    fun elementStyle(elementId: String): ElementStyle {
+        val root = try {
+            JSONObject(prefs.getString(KEY_ELEMENT_STYLES, "{}") ?: "{}")
+        } catch (_: Exception) {
+            JSONObject()
+        }
+        val item = root.optJSONObject(elementId) ?: JSONObject()
+        return ElementStyle(
+            offsetX = item.optInt("x", 0).coerceIn(-900, 900),
+            offsetY = item.optInt("y", 0).coerceIn(-500, 500),
+            sizePercent = item.optInt("size", 100).coerceIn(25, 250),
+            color = item.optString("color", "#FFFFFF").takeIf {
+                it.matches(Regex("^#[0-9A-Fa-f]{6}$"))
+            } ?: "#FFFFFF",
+            opacity = item.optInt("opacity", 100).coerceIn(0, 100),
+            visible = item.optBoolean("visible", true),
+            rotation = item.optInt("rotation", 0).coerceIn(-180, 180)
+        )
+    }
+
+    fun setElementStyle(elementId: String, style: ElementStyle) {
+        val root = try {
+            JSONObject(prefs.getString(KEY_ELEMENT_STYLES, "{}") ?: "{}")
+        } catch (_: Exception) {
+            JSONObject()
+        }
+        root.put(elementId, JSONObject().apply {
+            put("x", style.offsetX.coerceIn(-900, 900))
+            put("y", style.offsetY.coerceIn(-500, 500))
+            put("size", style.sizePercent.coerceIn(25, 250))
+            put("color", style.color.takeIf { it.matches(Regex("^#[0-9A-Fa-f]{6}$")) } ?: "#FFFFFF")
+            put("opacity", style.opacity.coerceIn(0, 100))
+            put("visible", style.visible)
+            put("rotation", style.rotation.coerceIn(-180, 180))
+        })
+        prefs.edit().putString(KEY_ELEMENT_STYLES, root.toString()).apply()
+    }
+
+    fun resetElementStyle(elementId: String) {
+        val root = try {
+            JSONObject(prefs.getString(KEY_ELEMENT_STYLES, "{}") ?: "{}")
+        } catch (_: Exception) {
+            JSONObject()
+        }
+        root.remove(elementId)
+        prefs.edit().putString(KEY_ELEMENT_STYLES, root.toString()).apply()
+    }
+
+    fun resetAllElementStyles() {
+        prefs.edit().remove(KEY_ELEMENT_STYLES).apply()
+    }
+
+    val elementStylesCacheKey: String
+        get() = prefs.getString(KEY_ELEMENT_STYLES, "{}") ?: "{}"
+
     /** Holiday colour grading. Off by default: it runs on someone's television. */
     var holidayThemes: Boolean
         get() = prefs.getBoolean(KEY_HOLIDAY, false)
