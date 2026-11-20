@@ -1,9 +1,9 @@
 <resources>
-    <string name="plugin_name">Weather Wallpaper</string>
+    <string name="plugin_name">Weather, Gold &amp; FX</string>
     <string name="plugin_description">Shows current conditions and today\'s high/low as your launcher wallpaper. Data by Open-Meteo.</string>
 
     <!-- *** GENERATE YOUR OWN UUID V4: https://www.uuidgenerator.net/version4 *** -->
-    <string name="plugin_uuid">3b60f77e-c483-4af4-b4ea-493f1571e47d</string>
+    <string name="plugin_uuid">4a6d1c82-9f37-4b51-a2e8-7c3d6f90b145</string>
 
     <string name="projectivy_not_installed">Warning, this plugin requires Projectivy Launcher which does not seem to be installed.</string>
 
