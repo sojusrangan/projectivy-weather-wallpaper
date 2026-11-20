@@ -122,6 +122,9 @@ object WeatherRenderer {
     @Volatile
     var currentAir: AirQualityClient.Reading? = null
 
+    @Volatile
+    var currentMarket: MarketRates? = null
+
     private fun gradientFor(bucket: String, isDay: Boolean): Pair<Int, Int> = when {
         !isDay -> Color.parseColor("#0B1026") to Color.parseColor("#1C2541")
         bucket == "clear" -> Color.parseColor("#1E6FB8") to Color.parseColor("#7EC8E3")
@@ -432,11 +435,63 @@ object WeatherRenderer {
         canvas.translate(shiftX3, shiftY3)
         drawPanel(canvas, c, placeLabel, attribution, currentAlert, phase.isDay, context)
         canvas.restore()
+        currentMarket?.let { drawMarketPanel(canvas, it) }
 
         val out = freshOutput(context, OUTPUT_PREFIX, "png")
         FileOutputStream(out).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         bitmap.recycle()
         return out
+    }
+
+
+    /**
+     * Compact market card in the unused right-hand area of the launcher
+     * wallpaper. Values are indicative spot benchmarks, not jeweller quotes.
+     */
+    private fun drawMarketPanel(canvas: Canvas, rates: MarketRates) {
+        val left = 1110f
+        val top = 500f
+        val right = 1810f
+        val bottom = 835f
+        val card = RectF(left, top, right, bottom)
+        val background = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(188, 7, 13, 27)
+            setShadowLayer(18f, 0f, 5f, Color.argb(110, 0, 0, 0))
+        }
+        canvas.drawRoundRect(card, 28f, 28f, background)
+        canvas.drawRoundRect(card, 28f, 28f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+            color = Color.argb(95, 255, 255, 255)
+        })
+
+        val gold = Color.rgb(244, 195, 72)
+        val white = Color.WHITE
+        val muted = Color.argb(180, 220, 228, 240)
+        fun text(value: String, x: Float, y: Float, size: Float, color: Int, face: Typeface = medium) {
+            canvas.drawText(value, x, y, paint(size, face, 245).apply { this.color = color })
+        }
+
+        text("UAE GOLD RATE", left + 38f, top + 55f, 31f, gold)
+        text("AED / GRAM", right - 205f, top + 55f, 22f, muted, light)
+
+        text("24K", left + 40f, top + 126f, 34f, muted)
+        text(String.format(Locale.US, "%.2f", rates.gold24k), left + 180f, top + 130f, 58f, white, light)
+        text("22K", left + 40f, top + 198f, 34f, muted)
+        text(String.format(Locale.US, "%.2f", rates.gold22k), left + 180f, top + 202f, 58f, white, light)
+
+        val divider = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(65, 255, 255, 255)
+            strokeWidth = 2f
+        }
+        canvas.drawLine(left + 38f, top + 225f, right - 38f, top + 225f, divider)
+
+        text("CURRENCY", left + 40f, top + 276f, 25f, gold)
+        text("1 AED", left + 40f, top + 322f, 30f, muted, light)
+        text(String.format(Locale.US, "INR %.3f", rates.aedToInr), left + 180f, top + 324f, 43f, white)
+
+        val updated = "Gold " + MarketRatesClient.timeLabel(rates.goldUpdatedAt) + "  ·  FX " + MarketRatesClient.timeLabel(rates.fxUpdatedAt)
+        text(updated, left + 40f, bottom - 18f, 19f, muted, light)
     }
 
     /** Everything above the background: readings, icon, optional panels. */
