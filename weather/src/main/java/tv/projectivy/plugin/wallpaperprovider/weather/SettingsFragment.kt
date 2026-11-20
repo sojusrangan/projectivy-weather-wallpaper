@@ -38,6 +38,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
         private const val CAT_EXPERIMENTAL = "experimental"
         private const val CAT_DEMO = "demo"
         private const val CAT_HOUSEKEEPING = "housekeeping"
+        private const val CAT_MANUAL_LAYOUT = "manual_layout"
         // Not a real settings category — reuses the same navigation
         // primitive (pushCategory/newInstance) for an info-only screen
         // rather than a filtered list of settings.
@@ -68,6 +69,18 @@ class SettingsFragment : GuidedStepSupportFragment() {
         private const val ACTION_ID_CAT_EXPERIMENTAL = 65L
         private const val ACTION_ID_CAT_DEMO = 66L
         private const val ACTION_ID_CAT_HOUSEKEEPING = 67L
+        private const val ACTION_ID_CAT_MANUAL_LAYOUT = 68L
+        private const val ACTION_ID_MARKET_TEXT = 56L
+        private const val ACTION_ID_MARKET_ICON = 57L
+        private const val ACTION_ID_MARKET_X = 58L
+        private const val ACTION_ID_MARKET_Y = 59L
+        private const val ACTION_ID_WEATHER_TEMP = 70L
+        private const val ACTION_ID_WEATHER_ICON = 71L
+        private const val ACTION_ID_WEATHER_X = 72L
+        private const val ACTION_ID_WEATHER_Y = 73L
+        private const val ACTION_ID_FORECAST_TEXT = 74L
+        private const val ACTION_ID_FORECAST_ICON = 75L
+        private const val ACTION_ID_LAYOUT_RESET = 76L
 
         private const val ACTION_ID_LATITUDE = 1L
         private const val ACTION_ID_LONGITUDE = 2L
@@ -264,6 +277,10 @@ class SettingsFragment : GuidedStepSupportFragment() {
 
         ACTION_ID_DEMO, ACTION_ID_DEMO_LABEL -> CAT_DEMO
 
+        ACTION_ID_MARKET_TEXT, ACTION_ID_MARKET_ICON, ACTION_ID_MARKET_X, ACTION_ID_MARKET_Y,
+        ACTION_ID_WEATHER_TEMP, ACTION_ID_WEATHER_ICON, ACTION_ID_WEATHER_X, ACTION_ID_WEATHER_Y,
+        ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON, ACTION_ID_LAYOUT_RESET -> CAT_MANUAL_LAYOUT
+
         ACTION_ID_REFRESH, ACTION_ID_UPDATE, ACTION_ID_REPORT, ACTION_ID_UPDATE_INTERVAL,
         ACTION_ID_SUPPORT -> CAT_HOUSEKEEPING
 
@@ -311,6 +328,11 @@ class SettingsFragment : GuidedStepSupportFragment() {
             .id(ACTION_ID_CAT_HOUSEKEEPING)
             .title(R.string.category_housekeeping)
             .description(R.string.category_housekeeping_desc)
+            .build(),
+        GuidedAction.Builder(context)
+            .id(ACTION_ID_CAT_MANUAL_LAYOUT)
+            .title(R.string.category_manual_layout)
+            .description(R.string.category_manual_layout_desc)
             .build()
     )
 
@@ -340,6 +362,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
             CAT_EXPERIMENTAL -> getString(R.string.category_experimental)
             CAT_DEMO -> getString(R.string.category_demo)
             CAT_HOUSEKEEPING -> getString(R.string.category_housekeeping)
+            CAT_MANUAL_LAYOUT -> getString(R.string.category_manual_layout)
             else -> getString(R.string.plugin_name)
         }
         // The version/description blurb only makes sense on the root screen —
@@ -840,6 +863,29 @@ class SettingsFragment : GuidedStepSupportFragment() {
                 .build()
         )
 
+        // Manual layout controls use editable numeric descriptions so they work
+        // with the standard Android TV remote keyboard.
+        if (category == CAT_MANUAL_LAYOUT) {
+            fun numeric(id: Long, title: String, value: Int) {
+                allActions.add(GuidedAction.Builder(context).id(id).title(title)
+                    .description(value.toString()).editDescription(value.toString())
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER).build())
+            }
+            numeric(ACTION_ID_MARKET_TEXT, "Gold / FX text size (12–40)", PreferencesManager.marketTextSize)
+            numeric(ACTION_ID_MARKET_ICON, "Gold / FX icon size (8–36)", PreferencesManager.marketIconSize)
+            numeric(ACTION_ID_MARKET_X, "Gold / FX horizontal position (0–1800)", PreferencesManager.marketX)
+            numeric(ACTION_ID_MARKET_Y, "Gold / FX vertical position (40–1000)", PreferencesManager.marketY)
+            numeric(ACTION_ID_WEATHER_TEMP, "Weather temperature size (24–120)", PreferencesManager.weatherTempSize)
+            numeric(ACTION_ID_WEATHER_ICON, "Weather icon size (16–80)", PreferencesManager.weatherIconSize)
+            numeric(ACTION_ID_WEATHER_X, "Weather horizontal position (0–1500)", PreferencesManager.weatherX)
+            numeric(ACTION_ID_WEATHER_Y, "Weather vertical position (0–900)", PreferencesManager.weatherY)
+            numeric(ACTION_ID_FORECAST_TEXT, "Forecast text size (10–32)", PreferencesManager.forecastTextSize)
+            numeric(ACTION_ID_FORECAST_ICON, "Forecast icon size (10–48)", PreferencesManager.forecastIconSize)
+            allActions.add(GuidedAction.Builder(context).id(ACTION_ID_LAYOUT_RESET)
+                .title("Reset manual layout to defaults").description("Restore original positions and sizes").build())
+        }
+
         // Keep only this screen's category, in the same relative order the
         // settings already had — no reordering logic needed beyond that.
         actions.addAll(allActions.filter { categoryOf(it.id) == category })
@@ -1118,6 +1164,22 @@ class SettingsFragment : GuidedStepSupportFragment() {
             ACTION_ID_CAT_EXPERIMENTAL -> pushCategory(CAT_EXPERIMENTAL)
             ACTION_ID_CAT_DEMO -> pushCategory(CAT_DEMO)
             ACTION_ID_CAT_HOUSEKEEPING -> pushCategory(CAT_HOUSEKEEPING)
+            ACTION_ID_CAT_MANUAL_LAYOUT -> pushCategory(CAT_MANUAL_LAYOUT)
+            ACTION_ID_LAYOUT_RESET -> {
+                PreferencesManager.marketTextSize = 22
+                PreferencesManager.marketIconSize = 13
+                PreferencesManager.marketX = 1110
+                PreferencesManager.marketY = 300
+                PreferencesManager.weatherTempSize = 58
+                PreferencesManager.weatherIconSize = 34
+                PreferencesManager.weatherX = 0
+                PreferencesManager.weatherY = 0
+                PreferencesManager.forecastTextSize = 16
+                PreferencesManager.forecastIconSize = 18
+                toast("Manual layout reset")
+                rebuild()
+                pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
+            }
             ACTION_ID_UNITS -> {
                 PreferencesManager.useMetric = action.isChecked
                 action.description = unitsLabel()
@@ -1303,6 +1365,28 @@ class SettingsFragment : GuidedStepSupportFragment() {
                     action.editDescription = PreferencesManager.longitude.toString()
                 } else {
                     PreferencesManager.longitude = parsed
+                    action.description = parsed.toString()
+                }
+            }
+            ACTION_ID_MARKET_TEXT, ACTION_ID_MARKET_ICON, ACTION_ID_MARKET_X, ACTION_ID_MARKET_Y,
+            ACTION_ID_WEATHER_TEMP, ACTION_ID_WEATHER_ICON, ACTION_ID_WEATHER_X, ACTION_ID_WEATHER_Y,
+            ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON -> {
+                val parsed = value.toIntOrNull()
+                if (parsed == null) {
+                    toast("Enter a whole number")
+                } else {
+                    when (action.id) {
+                        ACTION_ID_MARKET_TEXT -> PreferencesManager.marketTextSize = parsed
+                        ACTION_ID_MARKET_ICON -> PreferencesManager.marketIconSize = parsed
+                        ACTION_ID_MARKET_X -> PreferencesManager.marketX = parsed
+                        ACTION_ID_MARKET_Y -> PreferencesManager.marketY = parsed
+                        ACTION_ID_WEATHER_TEMP -> PreferencesManager.weatherTempSize = parsed
+                        ACTION_ID_WEATHER_ICON -> PreferencesManager.weatherIconSize = parsed
+                        ACTION_ID_WEATHER_X -> PreferencesManager.weatherX = parsed
+                        ACTION_ID_WEATHER_Y -> PreferencesManager.weatherY = parsed
+                        ACTION_ID_FORECAST_TEXT -> PreferencesManager.forecastTextSize = parsed
+                        ACTION_ID_FORECAST_ICON -> PreferencesManager.forecastIconSize = parsed
+                    }
                     action.description = parsed.toString()
                 }
             }
