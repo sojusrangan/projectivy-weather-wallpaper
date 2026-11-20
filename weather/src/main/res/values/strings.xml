@@ -25,6 +25,8 @@
     <string name="category_demo_desc">Hide your location for screenshots</string>
     <string name="category_housekeeping">Housekeeping</string>
     <string name="category_housekeeping_desc">Refresh, updates, and the debug report</string>
+    <string name="category_manual_layout">Manual Layout</string>
+    <string name="category_manual_layout_desc">Adjust market and weather text, icons and screen positions</string>
 
     <!-- Weather condition descriptions, drawn directly on the wallpaper.
          Kept separate from setting_* strings above since these are the
