@@ -436,7 +436,7 @@ object WeatherRenderer {
         canvas.translate(shiftX3, shiftY3)
         drawPanel(canvas, c, placeLabel, attribution, currentAlert, phase.isDay, context)
         canvas.restore()
-        currentMarket?.let { drawMarketPanel(canvas, it) }
+        if (PreferencesManager.showMarketModule) currentMarket?.let { drawMarketPanel(canvas, it) }
 
         val out = freshOutput(context, OUTPUT_PREFIX, "png")
         FileOutputStream(out).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
@@ -533,7 +533,7 @@ object WeatherRenderer {
         // it stays white: tinting the temperature would hurt legibility for
         // decoration, which is the wrong trade on a screen people glance at.
         val seasonal = HolidayThemes.current()
-        val labelPaint = paint(sz(25f), medium, 220)
+        val labelPaint = paint(sz(PreferencesManager.locationTextSize.toFloat()), medium, 220)
         seasonal?.let { labelPaint.color = it.accent }
         canvas.drawText(placeLabel.uppercase(), MARGIN, y, labelPaint)
         y += dy(82f)
@@ -674,7 +674,7 @@ object WeatherRenderer {
         }
 
         // A single small forecast row stays above the launcher app carousel.
-        val forecastItems = c.hourly.take(5)
+        val forecastItems = if (PreferencesManager.showForecastModule) c.hourly.take(5) else emptyList()
         if (forecastItems.isNotEmpty()) {
             val rowY = H * 0.53f
             var fx = MARGIN
