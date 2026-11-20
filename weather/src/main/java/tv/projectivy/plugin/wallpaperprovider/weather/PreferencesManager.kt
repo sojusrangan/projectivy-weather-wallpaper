@@ -83,6 +83,10 @@ object PreferencesManager {
     const val KEY_WEATHER_Y = "weatherY"
     const val KEY_FORECAST_TEXT_SIZE = "forecastTextSize"
     const val KEY_FORECAST_ICON_SIZE = "forecastIconSize"
+    const val KEY_LOCATION_TEXT_SIZE = "locationTextSize"
+    const val KEY_SHOW_MARKET = "showMarketModule"
+    const val KEY_SHOW_WEATHER = "showWeatherModule"
+    const val KEY_SHOW_FORECAST = "showForecastModule"
 
 
     // New York City, so a fresh install shows something rather than nothing.
@@ -206,6 +210,18 @@ object PreferencesManager {
     var forecastIconSize: Int
         get() = prefs.getInt(KEY_FORECAST_ICON_SIZE, 18).coerceIn(10, 48)
         set(v) = prefs.edit().putInt(KEY_FORECAST_ICON_SIZE, v.coerceIn(10, 48)).apply()
+    var locationTextSize: Int
+        get() = prefs.getInt(KEY_LOCATION_TEXT_SIZE, 25).coerceIn(12, 48)
+        set(v) = prefs.edit().putInt(KEY_LOCATION_TEXT_SIZE, v.coerceIn(12, 48)).apply()
+    var showMarketModule: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_MARKET, true)
+        set(v) = prefs.edit().putBoolean(KEY_SHOW_MARKET, v).apply()
+    var showWeatherModule: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_WEATHER, true)
+        set(v) = prefs.edit().putBoolean(KEY_SHOW_WEATHER, v).apply()
+    var showForecastModule: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_FORECAST, true)
+        set(v) = prefs.edit().putBoolean(KEY_SHOW_FORECAST, v).apply()
 
     /** Holiday colour grading. Off by default: it runs on someone's television. */
     var holidayThemes: Boolean
