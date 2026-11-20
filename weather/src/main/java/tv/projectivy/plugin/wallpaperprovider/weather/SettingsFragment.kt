@@ -936,6 +936,15 @@ class SettingsFragment : GuidedStepSupportFragment() {
             .checked(checked)
             .build()
 
+    private fun checkbox(id: Long, titleText: String, descText: String, checked: Boolean): GuidedAction =
+        GuidedAction.Builder(context)
+            .id(id)
+            .title(titleText)
+            .description(descText)
+            .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+            .checked(checked)
+            .build()
+
     private fun subAction(id: Long, titleRes: Int): GuidedAction =
         GuidedAction.Builder(context).id(id).title(titleRes).build()
 
