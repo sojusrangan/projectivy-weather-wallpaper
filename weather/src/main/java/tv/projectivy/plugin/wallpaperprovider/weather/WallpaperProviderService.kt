@@ -413,6 +413,8 @@ class WallpaperProviderService : Service() {
             PreferencesManager.weatherTempSize, PreferencesManager.weatherIconSize,
             PreferencesManager.weatherX, PreferencesManager.weatherY,
             PreferencesManager.forecastTextSize, PreferencesManager.forecastIconSize,
+            PreferencesManager.locationTextSize, PreferencesManager.showMarketModule,
+            PreferencesManager.showWeatherModule, PreferencesManager.showForecastModule,
             PreferencesManager.currentLatitude, PreferencesManager.currentLongitude,
             PreferencesManager.showHourly, PreferencesManager.showDaily,
             PreferencesManager.showStats, PreferencesManager.showSun,
