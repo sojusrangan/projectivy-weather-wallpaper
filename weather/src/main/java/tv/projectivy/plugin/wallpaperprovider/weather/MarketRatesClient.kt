@@ -35,14 +35,32 @@ object MarketRatesClient {
     @Volatile private var lastAttemptAt = 0L
     @Volatile private var memoryCache: MarketRates? = null
 
-    @Synchronized
-    fun fetch(context: Context): MarketRates? {
+    @Volatile private var refreshInFlight = false
+
+    fun cached(context: Context): MarketRates? {
+        return memoryCache ?: readCache(context.applicationContext).also { memoryCache = it }
+    }
+
+    fun refreshInBackground(context: Context, onUpdated: () -> Unit) {
+        synchronized(this) {
+            if (refreshInFlight || System.currentTimeMillis() - lastAttemptAt < REFRESH_INTERVAL_MS) return
+            refreshInFlight = true
+            lastAttemptAt = System.currentTimeMillis()
+        }
+        Thread({
+            try {
+                val before = cached(context)
+                val after = fetchNow(context.applicationContext, before)
+                if (after != null && after != before) onUpdated()
+            } finally {
+                synchronized(this) { refreshInFlight = false }
+            }
+        }, "MarketRatesRefresh").apply { isDaemon = true }.start()
+    }
+
+    private fun fetchNow(context: Context, cached: MarketRates?): MarketRates? {
         val appContext = context.applicationContext
         val now = System.currentTimeMillis()
-        val cached = memoryCache ?: readCache(appContext).also { memoryCache = it }
-
-        if (now - lastAttemptAt < REFRESH_INTERVAL_MS) return cached
-        lastAttemptAt = now
 
         var gold24 = cached?.gold24k
         var gold22 = cached?.gold22k
