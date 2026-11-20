@@ -498,6 +498,7 @@ object WeatherRenderer {
         phaseIsDay: Boolean = false,
         context: Context? = null
     ) {
+        if (!PreferencesManager.showWeatherModule) return
         // Subtle, slow drift to spread wear on burn-in-prone displays. Every
         // fixed-position element the panel draws — temperature, clock,
         // location label, the strip backgrounds — otherwise sits on the same
