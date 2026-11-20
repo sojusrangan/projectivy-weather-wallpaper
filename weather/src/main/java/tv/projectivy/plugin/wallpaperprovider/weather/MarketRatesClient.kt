@@ -130,7 +130,14 @@ object MarketRatesClient {
     private fun parseIsoTime(value: String): Long {
         if (value.isBlank()) return System.currentTimeMillis()
         return try {
-            java.time.Instant.parse(value).toEpochMilli()
+            val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'")
+            patterns.firstNotNullOfOrNull { pattern ->
+                runCatching {
+                    SimpleDateFormat(pattern, Locale.US).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }.parse(value)?.time
+                }.getOrNull()
+            } ?: System.currentTimeMillis()
         } catch (_: Exception) {
             System.currentTimeMillis()
         }
