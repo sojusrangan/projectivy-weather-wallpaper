@@ -85,6 +85,21 @@ class SettingsFragment : GuidedStepSupportFragment() {
         private const val ACTION_ID_SHOW_MARKET = 78L
         private const val ACTION_ID_SHOW_WEATHER = 79L
         private const val ACTION_ID_SHOW_FORECAST = 80L
+        private const val ACTION_ID_ELEMENT_LOCATION = 81L
+        private const val ACTION_ID_ELEMENT_TEMP = 82L
+        private const val ACTION_ID_ELEMENT_WEATHER_ICON = 83L
+        private const val ACTION_ID_ELEMENT_CONDITION = 84L
+        private const val ACTION_ID_ELEMENT_GOLD = 85L
+        private const val ACTION_ID_ELEMENT_CURRENCY = 86L
+        private const val ACTION_ID_ELEMENT_FORECAST = 87L
+        private const val ACTION_ID_ELEMENT_X = 90L
+        private const val ACTION_ID_ELEMENT_Y = 91L
+        private const val ACTION_ID_ELEMENT_SIZE = 92L
+        private const val ACTION_ID_ELEMENT_OPACITY = 93L
+        private const val ACTION_ID_ELEMENT_ROTATION = 94L
+        private const val ACTION_ID_ELEMENT_COLOR = 95L
+        private const val ACTION_ID_ELEMENT_VISIBLE = 96L
+        private const val ACTION_ID_ELEMENT_RESET = 97L
 
         private const val ACTION_ID_LATITUDE = 1L
         private const val ACTION_ID_LONGITUDE = 2L
@@ -281,11 +296,13 @@ class SettingsFragment : GuidedStepSupportFragment() {
 
         ACTION_ID_DEMO, ACTION_ID_DEMO_LABEL -> CAT_DEMO
 
-        ACTION_ID_MARKET_TEXT, ACTION_ID_MARKET_ICON, ACTION_ID_MARKET_X, ACTION_ID_MARKET_Y,
-        ACTION_ID_WEATHER_TEMP, ACTION_ID_WEATHER_ICON, ACTION_ID_WEATHER_X, ACTION_ID_WEATHER_Y,
-        ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON, ACTION_ID_LAYOUT_RESET,
-        ACTION_ID_LOCATION_TEXT, ACTION_ID_SHOW_MARKET, ACTION_ID_SHOW_WEATHER,
-        ACTION_ID_SHOW_FORECAST -> CAT_MANUAL_LAYOUT
+        ACTION_ID_ELEMENT_LOCATION, ACTION_ID_ELEMENT_TEMP, ACTION_ID_ELEMENT_WEATHER_ICON,
+        ACTION_ID_ELEMENT_CONDITION, ACTION_ID_ELEMENT_GOLD, ACTION_ID_ELEMENT_CURRENCY,
+        ACTION_ID_ELEMENT_FORECAST, ACTION_ID_MARKET_TEXT, ACTION_ID_MARKET_ICON,
+        ACTION_ID_MARKET_X, ACTION_ID_MARKET_Y, ACTION_ID_WEATHER_TEMP, ACTION_ID_WEATHER_ICON,
+        ACTION_ID_WEATHER_X, ACTION_ID_WEATHER_Y, ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON,
+        ACTION_ID_LAYOUT_RESET, ACTION_ID_LOCATION_TEXT, ACTION_ID_SHOW_MARKET,
+        ACTION_ID_SHOW_WEATHER, ACTION_ID_SHOW_FORECAST -> CAT_MANUAL_LAYOUT
 
         ACTION_ID_REFRESH, ACTION_ID_UPDATE, ACTION_ID_REPORT, ACTION_ID_UPDATE_INTERVAL,
         ACTION_ID_SUPPORT -> CAT_HOUSEKEEPING
@@ -369,7 +386,8 @@ class SettingsFragment : GuidedStepSupportFragment() {
             CAT_DEMO -> getString(R.string.category_demo)
             CAT_HOUSEKEEPING -> getString(R.string.category_housekeeping)
             CAT_MANUAL_LAYOUT -> getString(R.string.category_manual_layout)
-            else -> getString(R.string.plugin_name)
+            else -> if (category?.startsWith("element:") == true)
+                "Edit " + category!!.removePrefix("element:") else getString(R.string.plugin_name)
         }
         // The version/description blurb only makes sense on the root screen —
         // a category screen already has a specific, self-explanatory title.
@@ -394,6 +412,32 @@ class SettingsFragment : GuidedStepSupportFragment() {
         // as before into a temporary list, then keeps only the ones belonging
         // to its own category — nothing about how any individual setting is
         // built has changed, only which subset ends up on which screen.
+        if (category?.startsWith("element:") == true) {
+            val elementId = category!!.removePrefix("element:")
+            val style = PreferencesManager.elementStyle(elementId)
+            fun numeric(id: Long, title: String, value: Int) {
+                actions.add(GuidedAction.Builder(context).id(id).title(title)
+                    .description(value.toString()).editDescription(value.toString())
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
+                    .build())
+            }
+            numeric(ACTION_ID_ELEMENT_X, "Horizontal offset (-900 to 900)", style.offsetX)
+            numeric(ACTION_ID_ELEMENT_Y, "Vertical offset (-500 to 500)", style.offsetY)
+            numeric(ACTION_ID_ELEMENT_SIZE, "Size (25–250%)", style.sizePercent)
+            numeric(ACTION_ID_ELEMENT_OPACITY, "Opacity (0–100%)", style.opacity)
+            numeric(ACTION_ID_ELEMENT_ROTATION, "Rotation (-180 to 180°)", style.rotation)
+            actions.add(GuidedAction.Builder(context).id(ACTION_ID_ELEMENT_COLOR)
+                .title("Colour (HEX)").description(style.color).editDescription(style.color)
+                .descriptionEditable(true).build())
+            actions.add(GuidedAction.Builder(context).id(ACTION_ID_ELEMENT_VISIBLE)
+                .title("Show this element").description("Toggle visibility")
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID).checked(style.visible).build())
+            actions.add(GuidedAction.Builder(context).id(ACTION_ID_ELEMENT_RESET)
+                .title("Reset this element").description("Restore its default position and style").build())
+            return
+        }
+
         if (category == CAT_SUPPORT) {
             actions.add(
                 GuidedAction.Builder(context)
@@ -892,6 +936,20 @@ class SettingsFragment : GuidedStepSupportFragment() {
             allActions.add(checkbox(ACTION_ID_SHOW_MARKET, "Show gold and currency", "Display market rates on wallpaper", PreferencesManager.showMarketModule))
             allActions.add(checkbox(ACTION_ID_SHOW_WEATHER, "Show weather module", "Display location and current weather", PreferencesManager.showWeatherModule))
             allActions.add(checkbox(ACTION_ID_SHOW_FORECAST, "Show forecast row", "Display the hourly forecast strip", PreferencesManager.showForecastModule))
+            val elementEntries = listOf(
+                ACTION_ID_ELEMENT_LOCATION to ("weather_location" to "Location name"),
+                ACTION_ID_ELEMENT_TEMP to ("weather_temperature" to "Temperature"),
+                ACTION_ID_ELEMENT_WEATHER_ICON to ("weather_icon" to "Weather icon"),
+                ACTION_ID_ELEMENT_CONDITION to ("weather_condition" to "Weather condition"),
+                ACTION_ID_ELEMENT_GOLD to ("gold_rates" to "Gold rates"),
+                ACTION_ID_ELEMENT_CURRENCY to ("currency_rate" to "AED to INR rate"),
+                ACTION_ID_ELEMENT_FORECAST to ("forecast_row" to "Forecast row")
+            )
+            elementEntries.forEach { (actionId, entry) ->
+                allActions.add(GuidedAction.Builder(context).id(actionId)
+                    .title("Edit " + entry.second)
+                    .description("Position · size · colour · opacity · visibility").build())
+            }
             allActions.add(GuidedAction.Builder(context).id(ACTION_ID_LAYOUT_RESET)
                 .title("Reset manual layout to defaults").description("Restore original positions and sizes").build())
         }
@@ -1184,7 +1242,28 @@ class SettingsFragment : GuidedStepSupportFragment() {
             ACTION_ID_CAT_DEMO -> pushCategory(CAT_DEMO)
             ACTION_ID_CAT_HOUSEKEEPING -> pushCategory(CAT_HOUSEKEEPING)
             ACTION_ID_CAT_MANUAL_LAYOUT -> pushCategory(CAT_MANUAL_LAYOUT)
+            ACTION_ID_ELEMENT_LOCATION -> pushCategory("element:weather_location")
+            ACTION_ID_ELEMENT_TEMP -> pushCategory("element:weather_temperature")
+            ACTION_ID_ELEMENT_WEATHER_ICON -> pushCategory("element:weather_icon")
+            ACTION_ID_ELEMENT_CONDITION -> pushCategory("element:weather_condition")
+            ACTION_ID_ELEMENT_GOLD -> pushCategory("element:gold_rates")
+            ACTION_ID_ELEMENT_CURRENCY -> pushCategory("element:currency_rate")
+            ACTION_ID_ELEMENT_FORECAST -> pushCategory("element:forecast_row")
+            ACTION_ID_ELEMENT_VISIBLE -> {
+                val elementId = category?.removePrefix("element:") ?: return
+                val oldStyle = PreferencesManager.elementStyle(elementId)
+                PreferencesManager.setElementStyle(elementId, oldStyle.copy(visible = action.isChecked))
+                pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
+            }
+            ACTION_ID_ELEMENT_RESET -> {
+                val elementId = category?.removePrefix("element:") ?: return
+                PreferencesManager.resetElementStyle(elementId)
+                toast("Element style reset")
+                rebuild()
+                pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
+            }
             ACTION_ID_LAYOUT_RESET -> {
+                PreferencesManager.resetAllElementStyles()
                 PreferencesManager.marketTextSize = 22
                 PreferencesManager.marketIconSize = 13
                 PreferencesManager.marketX = 1110
@@ -1380,6 +1459,43 @@ class SettingsFragment : GuidedStepSupportFragment() {
     override fun onGuidedActionEditedAndProceed(action: GuidedAction): Long {
         val value = action.editDescription?.toString()?.trim().orEmpty()
 
+        if (category?.startsWith("element:") == true &&
+            action.id in ACTION_ID_ELEMENT_X..ACTION_ID_ELEMENT_COLOR) {
+            val elementId = category!!.removePrefix("element:")
+            val oldStyle = PreferencesManager.elementStyle(elementId)
+            if (action.id == ACTION_ID_ELEMENT_COLOR) {
+                val colour = value.uppercase()
+                if (!colour.matches(Regex("^#[0-9A-F]{6}$"))) {
+                    toast("Enter HEX colour, e.g. #FFFFFF")
+                    action.description = oldStyle.color
+                    action.editDescription = oldStyle.color
+                } else {
+                    PreferencesManager.setElementStyle(elementId, oldStyle.copy(color = colour))
+                    action.description = colour
+                }
+            } else {
+                val parsed = value.toIntOrNull()
+                if (parsed == null) {
+                    toast("Enter a whole number")
+                    action.description = oldElementValue(action.id, oldStyle).toString()
+                } else {
+                    val updated = when (action.id) {
+                        ACTION_ID_ELEMENT_X -> oldStyle.copy(offsetX = parsed.coerceIn(-900, 900))
+                        ACTION_ID_ELEMENT_Y -> oldStyle.copy(offsetY = parsed.coerceIn(-500, 500))
+                        ACTION_ID_ELEMENT_SIZE -> oldStyle.copy(sizePercent = parsed.coerceIn(25, 250))
+                        ACTION_ID_ELEMENT_OPACITY -> oldStyle.copy(opacity = parsed.coerceIn(0, 100))
+                        ACTION_ID_ELEMENT_ROTATION -> oldStyle.copy(rotation = parsed.coerceIn(-180, 180))
+                        else -> oldStyle
+                    }
+                    PreferencesManager.setElementStyle(elementId, updated)
+                    action.description = oldElementValue(action.id, updated).toString()
+                }
+            }
+            notifyActionChanged(findActionPositionById(action.id))
+            pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
+            return GuidedAction.ACTION_ID_CURRENT
+        }
+
         when (action.id) {
             ACTION_ID_LATITUDE -> {
                 val parsed = value.toDoubleOrNull()
@@ -1476,6 +1592,16 @@ class SettingsFragment : GuidedStepSupportFragment() {
      * of which is instant. The report is deliberately written somewhere the user
      * can reach without root or a permission grant.
      */
+    private fun oldElementValue(
+        actionId: Long, style: PreferencesManager.ElementStyle
+    ): Int = when (actionId) {
+        ACTION_ID_ELEMENT_X -> style.offsetX
+        ACTION_ID_ELEMENT_Y -> style.offsetY
+        ACTION_ID_ELEMENT_SIZE -> style.sizePercent
+        ACTION_ID_ELEMENT_OPACITY -> style.opacity
+        else -> style.rotation
+    }
+
     private fun createReport() {
         val action = findActionById(ACTION_ID_REPORT) ?: return
         action.description = getString(R.string.report_working)
