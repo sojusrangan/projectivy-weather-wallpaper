@@ -45,7 +45,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = libs.versions.appId.get()
+        // A distinct package lets the customised fork coexist with the upstream plugin.
+        applicationId = "tv.sojusrangan.projectivy.marketwallpaper"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = libs.versions.versionCode.get().toInt()
