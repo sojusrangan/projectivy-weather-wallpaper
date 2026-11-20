@@ -450,38 +450,41 @@ object WeatherRenderer {
      * clear of Projectivy's lower app rows and without a card background.
      */
     private fun drawMarketPanel(canvas: Canvas, rates: MarketRates) {
-        val x = 1110f
-        val y = 300f
+        val x = PreferencesManager.marketX.toFloat()
+        val y = PreferencesManager.marketY.toFloat()
+        val iconSize = PreferencesManager.marketIconSize.toFloat()
+        val textSize = PreferencesManager.marketTextSize.toFloat()
         val ink = Color.rgb(34, 48, 62)
         val muted = Color.rgb(67, 82, 96)
         val gold = Color.rgb(151, 105, 35)
 
         // Small gold coin glyph.
-        canvas.drawCircle(x + 12f, y - 8f, 13f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        canvas.drawCircle(x + iconSize * 0.9f, y - iconSize * 0.6f, iconSize, Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = gold
         })
-        canvas.drawText("Au", x + 2f, y - 1f, paint(13f, medium, 255).apply {
+        canvas.drawText("Au", x - iconSize * 0.45f, y + iconSize * 0.55f, paint(iconSize, medium, 255).apply {
             color = Color.WHITE
             clearShadowLayer()
         })
 
-        val p = paint(22f, medium, 235).apply { color = ink; clearShadowLayer() }
-        val small = paint(20f, light, 220).apply { color = muted; clearShadowLayer() }
-        canvas.drawText("24K  " + String.format(Locale.US, "%.2f", rates.gold24k), x + 38f, y, p)
-        canvas.drawText("22K  " + String.format(Locale.US, "%.2f", rates.gold22k), x + 285f, y, p)
-        canvas.drawText("AED/g", x + 545f, y, small)
+        val p = paint(textSize, medium, 235).apply { color = ink; clearShadowLayer() }
+        val small = paint((textSize * 0.9f).coerceAtLeast(10f), light, 220).apply { color = muted; clearShadowLayer() }
+        val textStart = x + iconSize * 2.8f
+        canvas.drawText("24K  " + String.format(Locale.US, "%.2f", rates.gold24k), textStart, y, p)
+        canvas.drawText("22K  " + String.format(Locale.US, "%.2f", rates.gold22k), textStart + textSize * 11.2f, y, p)
+        canvas.drawText("AED/g", textStart + textSize * 21.5f, y, small)
 
         // Currency as a compact second line, no filled panel.
-        canvas.drawCircle(x + 12f, y + 42f, 12f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        canvas.drawCircle(x + iconSize * 0.9f, y + textSize * 1.9f, iconSize * 0.92f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.rgb(55, 126, 105)
         })
-        canvas.drawText("₹", x + 5f, y + 50f, paint(18f, medium, 255).apply {
+        canvas.drawText("₹", x + iconSize * 0.45f, y + textSize * 2.25f, paint(iconSize * 1.25f, medium, 255).apply {
             color = Color.WHITE
             clearShadowLayer()
         })
         canvas.drawText(
             "1 AED = " + String.format(Locale.US, "₹ %.2f", rates.aedToInr),
-            x + 38f, y + 50f, small
+            textStart, y + textSize * 2.25f, small
         )
     }
 
@@ -510,6 +513,7 @@ object WeatherRenderer {
         // one-minute clock ticks so the clock itself never visibly jitters.
         // Verified numerically before shipping this.
         canvas.save()
+        canvas.translate(PreferencesManager.weatherX.toFloat(), PreferencesManager.weatherY.toFloat())
         if (PreferencesManager.reduceBurnIn) {
             val t = System.currentTimeMillis() / 1000.0
             val dx = (6.0 * kotlin.math.cos(2 * Math.PI * t / (3 * 3600))).toFloat()
@@ -535,14 +539,14 @@ object WeatherRenderer {
         y += dy(82f)
 
         val temp = "${c.temperature.roundToInt()}${c.unitSuffix}"
-        val tempPaint = paint(sz(58f), light)
+        val tempPaint = paint(sz(PreferencesManager.weatherTempSize.toFloat()), light)
         canvas.drawText(temp, MARGIN, y, tempPaint)
 
         WeatherIcons.draw(
             canvas, c.weatherCode, phaseIsDay,
             cx = MARGIN + tempPaint.measureText(temp) + dy(42f),
             cy = y - dy(28f),
-            size = sz(34f)
+            size = sz(PreferencesManager.weatherIconSize.toFloat())
         )
 
         y += dy(38f)
@@ -675,9 +679,9 @@ object WeatherRenderer {
             val rowY = H * 0.53f
             var fx = MARGIN
             forecastItems.forEach { hour ->
-                WeatherIcons.draw(canvas, hour.weatherCode, hour.isDay, fx + dy(10f), rowY - dy(7f), sz(18f))
+                WeatherIcons.draw(canvas, hour.weatherCode, hour.isDay, fx + dy(10f), rowY - dy(7f), sz(PreferencesManager.forecastIconSize.toFloat()))
                 val t = "${hour.temperature.roundToInt()}°"
-                canvas.drawText(t, fx + dy(30f), rowY, paint(sz(16f), light, 220).apply {
+                canvas.drawText(t, fx + dy(30f), rowY, paint(sz(PreferencesManager.forecastTextSize.toFloat()), light, 220).apply {
                     color = Color.rgb(43, 52, 62)
                     clearShadowLayer()
                 })
