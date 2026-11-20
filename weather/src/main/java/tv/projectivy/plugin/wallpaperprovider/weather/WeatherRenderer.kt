@@ -12,6 +12,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -492,6 +493,7 @@ object WeatherRenderer {
 
         val updated = "Gold " + MarketRatesClient.timeLabel(rates.goldUpdatedAt) + "  ·  FX " + MarketRatesClient.timeLabel(rates.fxUpdatedAt)
         text(updated, left + 40f, bottom - 18f, 19f, muted, light)
+        text("Spot benchmark · excludes VAT and making charges", left + 40f, bottom + 12f, 17f, muted, light)
     }
 
     /** Everything above the background: readings, icon, optional panels. */
