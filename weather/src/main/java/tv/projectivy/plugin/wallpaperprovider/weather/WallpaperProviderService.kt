@@ -227,6 +227,13 @@ class WallpaperProviderService : Service() {
 
             val conditions = currentConditions() ?: return emptyList()
 
+            // Market feeds refresh off the synchronous wallpaper-provider thread.
+            // Once fresh data arrives, ask Projectivy for one new wallpaper render.
+            MarketRatesClient.refreshInBackground(this@WallpaperProviderService) {
+                requestSelfUpdate()
+            }
+            WeatherRenderer.currentMarket = MarketRatesClient.cached(this@WallpaperProviderService)
+
             // Scheduled update check. Fires on a worker thread and only records
             // what it found, so it never delays this call.
             if (UpdateChecker.isCheckDue()) {
@@ -418,6 +425,11 @@ class WallpaperProviderService : Service() {
             WeatherRenderer.currentAurora?.kp,
             WeatherRenderer.currentMarine?.waveHeightM,
             WeatherRenderer.currentAir?.aqi,
+            WeatherRenderer.currentMarket?.gold24k,
+            WeatherRenderer.currentMarket?.gold22k,
+            WeatherRenderer.currentMarket?.aedToInr,
+            WeatherRenderer.currentMarket?.goldUpdatedAt,
+            WeatherRenderer.currentMarket?.fxUpdatedAt,
             Advisories.top(this, c)?.text,
             UpdateChecker.pendingVersion(BuildConfig.VERSION_NAME),
             minute,
