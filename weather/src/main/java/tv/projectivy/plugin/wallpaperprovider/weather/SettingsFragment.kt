@@ -81,6 +81,10 @@ class SettingsFragment : GuidedStepSupportFragment() {
         private const val ACTION_ID_FORECAST_TEXT = 74L
         private const val ACTION_ID_FORECAST_ICON = 75L
         private const val ACTION_ID_LAYOUT_RESET = 76L
+        private const val ACTION_ID_LOCATION_TEXT = 77L
+        private const val ACTION_ID_SHOW_MARKET = 78L
+        private const val ACTION_ID_SHOW_WEATHER = 79L
+        private const val ACTION_ID_SHOW_FORECAST = 80L
 
         private const val ACTION_ID_LATITUDE = 1L
         private const val ACTION_ID_LONGITUDE = 2L
@@ -279,7 +283,9 @@ class SettingsFragment : GuidedStepSupportFragment() {
 
         ACTION_ID_MARKET_TEXT, ACTION_ID_MARKET_ICON, ACTION_ID_MARKET_X, ACTION_ID_MARKET_Y,
         ACTION_ID_WEATHER_TEMP, ACTION_ID_WEATHER_ICON, ACTION_ID_WEATHER_X, ACTION_ID_WEATHER_Y,
-        ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON, ACTION_ID_LAYOUT_RESET -> CAT_MANUAL_LAYOUT
+        ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON, ACTION_ID_LAYOUT_RESET,
+        ACTION_ID_LOCATION_TEXT, ACTION_ID_SHOW_MARKET, ACTION_ID_SHOW_WEATHER,
+        ACTION_ID_SHOW_FORECAST -> CAT_MANUAL_LAYOUT
 
         ACTION_ID_REFRESH, ACTION_ID_UPDATE, ACTION_ID_REPORT, ACTION_ID_UPDATE_INTERVAL,
         ACTION_ID_SUPPORT -> CAT_HOUSEKEEPING
@@ -882,6 +888,10 @@ class SettingsFragment : GuidedStepSupportFragment() {
             numeric(ACTION_ID_WEATHER_Y, "Weather vertical position (0–900)", PreferencesManager.weatherY)
             numeric(ACTION_ID_FORECAST_TEXT, "Forecast text size (10–32)", PreferencesManager.forecastTextSize)
             numeric(ACTION_ID_FORECAST_ICON, "Forecast icon size (10–48)", PreferencesManager.forecastIconSize)
+            numeric(ACTION_ID_LOCATION_TEXT, "Location name text size (12–48)", PreferencesManager.locationTextSize)
+            allActions.add(checkbox(ACTION_ID_SHOW_MARKET, "Show gold and currency", "Display market rates on wallpaper", PreferencesManager.showMarketModule))
+            allActions.add(checkbox(ACTION_ID_SHOW_WEATHER, "Show weather module", "Display location and current weather", PreferencesManager.showWeatherModule))
+            allActions.add(checkbox(ACTION_ID_SHOW_FORECAST, "Show forecast row", "Display the hourly forecast strip", PreferencesManager.showForecastModule))
             allActions.add(GuidedAction.Builder(context).id(ACTION_ID_LAYOUT_RESET)
                 .title("Reset manual layout to defaults").description("Restore original positions and sizes").build())
         }
@@ -1176,6 +1186,10 @@ class SettingsFragment : GuidedStepSupportFragment() {
                 PreferencesManager.weatherY = 0
                 PreferencesManager.forecastTextSize = 16
                 PreferencesManager.forecastIconSize = 18
+                PreferencesManager.locationTextSize = 25
+                PreferencesManager.showMarketModule = true
+                PreferencesManager.showWeatherModule = true
+                PreferencesManager.showForecastModule = true
                 toast("Manual layout reset")
                 rebuild()
                 pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
@@ -1184,6 +1198,18 @@ class SettingsFragment : GuidedStepSupportFragment() {
                 PreferencesManager.useMetric = action.isChecked
                 action.description = unitsLabel()
                 notifyActionChanged(findActionPositionById(ACTION_ID_UNITS))
+                pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
+            }
+            ACTION_ID_SHOW_MARKET -> {
+                PreferencesManager.showMarketModule = action.isChecked
+                pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
+            }
+            ACTION_ID_SHOW_WEATHER -> {
+                PreferencesManager.showWeatherModule = action.isChecked
+                pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
+            }
+            ACTION_ID_SHOW_FORECAST -> {
+                PreferencesManager.showForecastModule = action.isChecked
                 pushUpdate(WallpaperProviderContract.UpdateReason.PREFS_CHANGED)
             }
             ACTION_ID_REDUCE_BURN_IN -> {
@@ -1370,7 +1396,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
             }
             ACTION_ID_MARKET_TEXT, ACTION_ID_MARKET_ICON, ACTION_ID_MARKET_X, ACTION_ID_MARKET_Y,
             ACTION_ID_WEATHER_TEMP, ACTION_ID_WEATHER_ICON, ACTION_ID_WEATHER_X, ACTION_ID_WEATHER_Y,
-            ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON -> {
+            ACTION_ID_FORECAST_TEXT, ACTION_ID_FORECAST_ICON, ACTION_ID_LOCATION_TEXT -> {
                 val parsed = value.toIntOrNull()
                 if (parsed == null) {
                     toast("Enter a whole number")
@@ -1386,6 +1412,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
                         ACTION_ID_WEATHER_Y -> PreferencesManager.weatherY = parsed
                         ACTION_ID_FORECAST_TEXT -> PreferencesManager.forecastTextSize = parsed
                         ACTION_ID_FORECAST_ICON -> PreferencesManager.forecastIconSize = parsed
+                        ACTION_ID_LOCATION_TEXT -> PreferencesManager.locationTextSize = parsed
                     }
                     action.description = parsed.toString()
                 }
