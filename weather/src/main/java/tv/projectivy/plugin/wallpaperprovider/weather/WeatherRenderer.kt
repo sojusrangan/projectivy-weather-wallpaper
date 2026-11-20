@@ -451,9 +451,9 @@ object WeatherRenderer {
      */
     private fun drawMarketPanel(canvas: Canvas, rates: MarketRates) {
         val left = 1110f
-        val top = 500f
+        val top = 430f
         val right = 1810f
-        val bottom = 835f
+        val bottom = 820f
         val card = RectF(left, top, right, bottom)
         val background = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(188, 7, 13, 27)
@@ -487,13 +487,13 @@ object WeatherRenderer {
         }
         canvas.drawLine(left + 38f, top + 225f, right - 38f, top + 225f, divider)
 
-        text("CURRENCY", left + 40f, top + 276f, 25f, gold)
-        text("1 AED", left + 40f, top + 322f, 30f, muted, light)
-        text(String.format(Locale.US, "INR %.3f", rates.aedToInr), left + 180f, top + 324f, 43f, white)
+        text("CURRENCY", left + 40f, top + 255f, 25f, gold)
+        text("1 AED", left + 40f, top + 310f, 30f, muted, light)
+        text(String.format(Locale.US, "INR %.3f", rates.aedToInr), left + 180f, top + 312f, 43f, white)
 
+        text("Spot benchmark · excludes VAT and making charges", left + 40f, bottom - 45f, 17f, muted, light)
         val updated = "Gold " + MarketRatesClient.timeLabel(rates.goldUpdatedAt) + "  ·  FX " + MarketRatesClient.timeLabel(rates.fxUpdatedAt)
         text(updated, left + 40f, bottom - 18f, 19f, muted, light)
-        text("Spot benchmark · excludes VAT and making charges", left + 40f, bottom + 12f, 17f, muted, light)
     }
 
     /** Everything above the background: readings, icon, optional panels. */
