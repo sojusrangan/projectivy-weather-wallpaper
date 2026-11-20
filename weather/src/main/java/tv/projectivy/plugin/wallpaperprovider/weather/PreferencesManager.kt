@@ -73,6 +73,18 @@ object PreferencesManager {
     const val KEY_BASEMAP_URL = "basemapUrl"
     const val KEY_BASEMAP_ATTRIBUTION = "basemapAttribution"
 
+    const val KEY_MARKET_TEXT_SIZE = "marketTextSize"
+    const val KEY_MARKET_ICON_SIZE = "marketIconSize"
+    const val KEY_MARKET_X = "marketX"
+    const val KEY_MARKET_Y = "marketY"
+    const val KEY_WEATHER_TEMP_SIZE = "weatherTempSize"
+    const val KEY_WEATHER_ICON_SIZE = "weatherIconSize"
+    const val KEY_WEATHER_X = "weatherX"
+    const val KEY_WEATHER_Y = "weatherY"
+    const val KEY_FORECAST_TEXT_SIZE = "forecastTextSize"
+    const val KEY_FORECAST_ICON_SIZE = "forecastIconSize"
+
+
     // New York City, so a fresh install shows something rather than nothing.
     private const val DEFAULT_LAT = 40.7128
     private const val DEFAULT_LON = -74.0060
@@ -162,6 +174,38 @@ object PreferencesManager {
 
     /** Scale as a multiplier, for the renderer. */
     val panelScaleFactor: Float get() = panelScale / 100f
+
+    // User-adjustable compact dashboard layout. Coordinates are 1920x1080 design pixels.
+    var marketTextSize: Int
+        get() = prefs.getInt(KEY_MARKET_TEXT_SIZE, 22).coerceIn(12, 40)
+        set(v) = prefs.edit().putInt(KEY_MARKET_TEXT_SIZE, v.coerceIn(12, 40)).apply()
+    var marketIconSize: Int
+        get() = prefs.getInt(KEY_MARKET_ICON_SIZE, 13).coerceIn(8, 36)
+        set(v) = prefs.edit().putInt(KEY_MARKET_ICON_SIZE, v.coerceIn(8, 36)).apply()
+    var marketX: Int
+        get() = prefs.getInt(KEY_MARKET_X, 1110).coerceIn(0, 1800)
+        set(v) = prefs.edit().putInt(KEY_MARKET_X, v.coerceIn(0, 1800)).apply()
+    var marketY: Int
+        get() = prefs.getInt(KEY_MARKET_Y, 300).coerceIn(40, 1000)
+        set(v) = prefs.edit().putInt(KEY_MARKET_Y, v.coerceIn(40, 1000)).apply()
+    var weatherTempSize: Int
+        get() = prefs.getInt(KEY_WEATHER_TEMP_SIZE, 58).coerceIn(24, 120)
+        set(v) = prefs.edit().putInt(KEY_WEATHER_TEMP_SIZE, v.coerceIn(24, 120)).apply()
+    var weatherIconSize: Int
+        get() = prefs.getInt(KEY_WEATHER_ICON_SIZE, 34).coerceIn(16, 80)
+        set(v) = prefs.edit().putInt(KEY_WEATHER_ICON_SIZE, v.coerceIn(16, 80)).apply()
+    var weatherX: Int
+        get() = prefs.getInt(KEY_WEATHER_X, 0).coerceIn(0, 1500)
+        set(v) = prefs.edit().putInt(KEY_WEATHER_X, v.coerceIn(0, 1500)).apply()
+    var weatherY: Int
+        get() = prefs.getInt(KEY_WEATHER_Y, 0).coerceIn(0, 900)
+        set(v) = prefs.edit().putInt(KEY_WEATHER_Y, v.coerceIn(0, 900)).apply()
+    var forecastTextSize: Int
+        get() = prefs.getInt(KEY_FORECAST_TEXT_SIZE, 16).coerceIn(10, 32)
+        set(v) = prefs.edit().putInt(KEY_FORECAST_TEXT_SIZE, v.coerceIn(10, 32)).apply()
+    var forecastIconSize: Int
+        get() = prefs.getInt(KEY_FORECAST_ICON_SIZE, 18).coerceIn(10, 48)
+        set(v) = prefs.edit().putInt(KEY_FORECAST_ICON_SIZE, v.coerceIn(10, 48)).apply()
 
     /** Holiday colour grading. Off by default: it runs on someone's television. */
     var holidayThemes: Boolean
