@@ -465,8 +465,8 @@ object WeatherRenderer {
             clearShadowLayer()
         })
 
-        val p = paint(25f, medium, 235).apply { color = ink; clearShadowLayer() }
-        val small = paint(23f, light, 220).apply { color = muted; clearShadowLayer() }
+        val p = paint(22f, medium, 235).apply { color = ink; clearShadowLayer() }
+        val small = paint(20f, light, 220).apply { color = muted; clearShadowLayer() }
         canvas.drawText("24K  " + String.format(Locale.US, "%.2f", rates.gold24k), x + 38f, y, p)
         canvas.drawText("22K  " + String.format(Locale.US, "%.2f", rates.gold22k), x + 285f, y, p)
         canvas.drawText("AED/g", x + 545f, y, small)
@@ -535,19 +535,19 @@ object WeatherRenderer {
         y += dy(82f)
 
         val temp = "${c.temperature.roundToInt()}${c.unitSuffix}"
-        val tempPaint = paint(sz(88f), light)
+        val tempPaint = paint(sz(58f), light)
         canvas.drawText(temp, MARGIN, y, tempPaint)
 
         WeatherIcons.draw(
             canvas, c.weatherCode, phaseIsDay,
             cx = MARGIN + tempPaint.measureText(temp) + dy(42f),
             cy = y - dy(28f),
-            size = sz(48f)
+            size = sz(34f)
         )
 
         y += dy(38f)
         canvas.drawText(
-            OpenMeteoClient.describe(context, c.weatherCode), MARGIN, y, paint(sz(29f), light, 238)
+            OpenMeteoClient.describe(context, c.weatherCode), MARGIN, y, paint(sz(23f), light, 238)
         )
 
         // Whether it is about to rain matters more than anything else here, so
@@ -569,7 +569,7 @@ object WeatherRenderer {
         if (PreferencesManager.showAdvisories) {
             Advisories.top(context, c)?.let { advisory ->
                 y += dy(50f)
-                canvas.drawText(advisory.text, MARGIN, y, paint(sz(36f), medium).apply {
+                canvas.drawText(advisory.text, MARGIN, y, paint(sz(22f), medium).apply {
                     color = advisory.colour
                 })
             }
@@ -581,7 +581,7 @@ object WeatherRenderer {
             currentAir?.let { air ->
                 AirQualityClient.alertLabel(context, air)?.let { text ->
                     y += dy(52f)
-                    canvas.drawText(text, MARGIN, y, paint(sz(38f), medium).apply {
+                    canvas.drawText(text, MARGIN, y, paint(sz(22f), medium).apply {
                         color = AirQualityClient.bandColour(air.aqi)
                     })
                 }
@@ -648,7 +648,7 @@ object WeatherRenderer {
                 y += dy(46f)
                 canvas.drawText(
                     MarineClient.label(context, m, c.metric), MARGIN, y,
-                    paint(sz(34f), medium, 220).apply {
+                    paint(sz(21f), medium, 220).apply {
                         color = Color.parseColor("#8ECAE6")
                     }
                 )
@@ -664,7 +664,7 @@ object WeatherRenderer {
 
         if (PreferencesManager.showSun) {
             sunLine(context, c)?.let {
-                canvas.drawText(it, MARGIN, y, paint(sz(34f), light, 165))
+                canvas.drawText(it, MARGIN, y, paint(sz(20f), light, 200))
                 y += dy(46f)
             }
         }
@@ -672,12 +672,12 @@ object WeatherRenderer {
         // A single small forecast row stays above the launcher app carousel.
         val forecastItems = c.hourly.take(5)
         if (forecastItems.isNotEmpty()) {
-            val rowY = minOf(y + dy(34f), safeBottom() - dy(42f))
+            val rowY = H * 0.53f
             var fx = MARGIN
             forecastItems.forEach { hour ->
-                WeatherIcons.draw(canvas, hour.weatherCode, hour.isDay, fx + dy(10f), rowY - dy(7f), sz(23f))
+                WeatherIcons.draw(canvas, hour.weatherCode, hour.isDay, fx + dy(10f), rowY - dy(7f), sz(18f))
                 val t = "${hour.temperature.roundToInt()}°"
-                canvas.drawText(t, fx + dy(30f), rowY, paint(sz(19f), light, 220).apply {
+                canvas.drawText(t, fx + dy(30f), rowY, paint(sz(16f), light, 220).apply {
                     color = Color.rgb(43, 52, 62)
                     clearShadowLayer()
                 })
